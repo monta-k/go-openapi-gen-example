@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  movie-codegen:
+    build:
+      dockerfile: oapi-codegen/dockerfile
+    volumes:
+      - ..:/go/src/github.com/monta-k/go-openapi-gen-example
+    working_dir: /go/src/github.com/monta-k/go-openapi-gen-example/openapi/movie
+    command: > 
+      sh -c '
+      oapi-codegen -config ../chi-server.config.yaml ./swagger.yaml &&
+      oapi-codegen -config ../models.config.yaml ./swagger.yaml &&
+      oapi-codegen -config ../clients.config.yaml ./swagger.yaml
+      '

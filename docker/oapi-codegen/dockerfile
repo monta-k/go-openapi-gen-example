@@ -1,0 +1,5 @@
+FROM golang:1.19.0-alpine
+
+RUN set -eux && \
+  apk --update add --no-cache alpine-sdk tzdata&& \
+  go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4

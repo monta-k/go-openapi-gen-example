@@ -1,0 +1,6 @@
+package: adapters
+generate:
+  client: true
+output: clients.gen.go
+output-options:
+  skip-prune: true

@@ -1,0 +1,61 @@
+openapi: 3.0.0
+x-stoplight:
+  id: q7ebtsd75xa7j
+info:
+  title: Movie
+  version: '1.0'
+  description: 映画にかんするAPI
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /v1/movies:
+    get:
+      summary: 映画一覧取得API
+      tags:
+        - Movie API
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  movies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movie'
+                required:
+                  - movies
+      operationId: get-v1-movies
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: title
+          description: タイトル部分一致
+        - schema:
+            type: string
+          in: query
+          name: director
+          description: 監督部分一致
+components:
+  schemas:
+    Movie:
+      title: Movie
+      x-stoplight:
+        id: rosx2h7xmcbwl
+      type: object
+      x-tags:
+        - Movie API
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        director:
+          type: string
+      required:
+        - id
+        - title
+        - director
