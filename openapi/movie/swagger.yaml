@@ -39,6 +39,13 @@ paths:
           in: query
           name: director
           description: 監督部分一致
+        - schema:
+            type: string
+          in: header
+          name: X-User-ID
+          required: true
+      security:
+        - token: []
 components:
   schemas:
     Movie:
@@ -59,3 +66,7 @@ components:
         - id
         - title
         - director
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer

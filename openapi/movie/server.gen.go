@@ -6,6 +6,7 @@ package adapters
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -40,6 +41,8 @@ func (siw *ServerInterfaceWrapper) GetV1Movies(w http.ResponseWriter, r *http.Re
 
 	var err error
 
+	ctx = context.WithValue(ctx, TokenScopes, []string{""})
+
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetV1MoviesParams
 
@@ -56,6 +59,31 @@ func (siw *ServerInterfaceWrapper) GetV1Movies(w http.ResponseWriter, r *http.Re
 	err = runtime.BindQueryParameter("form", true, false, "director", r.URL.Query(), &params.Director)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "director", Err: err})
+		return
+	}
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-User-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-User-ID")]; found {
+		var XUserID string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-User-ID", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-User-ID", runtime.ParamLocationHeader, valueList[0], &XUserID)
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-User-ID", Err: err})
+			return
+		}
+
+		params.XUserID = XUserID
+
+	} else {
+		err := fmt.Errorf("Header parameter X-User-ID is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-User-ID", Err: err})
 		return
 	}
 
@@ -193,15 +221,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/4xSTYsTQRD9K1J6nM1MdpHA3DzJIouevEgOnUltpsNMd6e7EhPCgElAF/bgQfEDEYQV",
-	"FfbqQRD0x4wx+i+kevLhZqPsKZWefvVev/fGkOjcaIWKHMRjcEmKufDjkR5I5MFYbdCSRH/clhYT0pZn",
-	"GhmEGBxZqTpQBCDbO49JUoY7vhQBWOz1pcU2xA8YvbobbHiaa/xSUrBao1tdTAgCGO450iaTnZSYhVWA",
-	"1W64nzaGedJ6mLGI4R6JjmMev+barXuH0CxYg1TH2j8NXWKlIakVxPDz1bvF86/l5LycnJbTZ+XkdTk9",
-	"ZdBlPQO0rgLVaxFzaYNKGAkxHNSiWgQBGEGp9y8c1MOccf5fB71iNlgw7yFLv410v35U3WGkFTkSWta+",
-	"LbKcfi+n78vZSTk7/z37ND95/OPLo19PPgO/CmLo9dGOIAAlcha8MreKeWci2wyLN2eLt2dX2L0O7H/r",
-	"m5y4M1q56v37UcQ/iVaEylshjMlk4s0Iu44ljP/ad7GLGx8lYe6HGxaPIYbr4abX4bLUYRVXse6PsFaM",
-	"LrVwubS5XTNflYve3L3j0a6f58KO1p1hmz58nD99Mf/2clmYfzTPoR2sgu3bDGJIiUwchplORJZqR/FB",
-	"FEXAvu0qea+BLXLtxs2haHShKP4EAAD//9jUdwvPAwAA",
+	"H4sIAAAAAAAC/4xTX2sTTxT9Kj/uz8dNd9sigX0TBClSFEQRSh4mm9vs1N2d6Z2bmFAWbApa6IMPin8Q",
+	"Qaio0FcfBEE/zFqr30Lu7CapTVCfMpmdc88995y7B4nJrSmwYAfxHrgkxVz546YZapSDJWORWKO/7mnC",
+	"hA3JmccWIQbHpIs+lAHo3tJr1pzhki9lAIS7A03Yg3hL0NO3wZynM8M3LQXTMqa7gwlDAKOWY2Mz3U9Z",
+	"WKQLIONGa2l7lCfd+5k0MWqx6jvh8WX+u3JzAzrSgsNkQJrHt0R7LZLNPSxm8xCuLipCmnOnzBZKgeti",
+	"2/jBoEtIW9amgBi+v3hz9vRztX9S7R9VkyfV/stqciSUi2qGSK4Gra5E0qmxWCirIYb1lWglggCs4tQ3",
+	"Fg5Xw1xw/l8fvV6xRwnvhgi/hnxndbN+I0hSOTKSKL/YZDX5Wk3eVgeH1cHJz4MPp4cPv3168OPRRxBV",
+	"EMPuAGkMARTKz2BqTR2SpX5eZDh7dXz2+vgfas/s/kt5j01R9bwZDfhu67ZDam1chfOBYhrgn6p15LGz",
+	"pnD1NNeiSH4SUzAWfrDK2kwnfrThjjPzRKjFvZi7ohlzf7hEuA0x/B/OdyxsFiyszS9neVJEarywEU3R",
+	"zsXI++D9Pukb1+F8mL3bTYy3OqLVDfJc0XiWTbHj3fvTx89OvzxvgrlsP3xNGk4DNKCsSX8chplJVJYa",
+	"x/F6FEUgLMtWcbeNXXa99uWRau9AWf4KAAD//3sjQT51BAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

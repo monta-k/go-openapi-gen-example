@@ -164,6 +164,15 @@ func NewGetV1MoviesRequest(server string, params *GetV1MoviesParams) (*http.Requ
 		return nil, err
 	}
 
+	var headerParam0 string
+
+	headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-User-ID", runtime.ParamLocationHeader, params.XUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("X-User-ID", headerParam0)
+
 	return req, nil
 }
 
