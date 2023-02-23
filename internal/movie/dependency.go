@@ -3,9 +3,9 @@ package movie
 import "github.com/monta-k/go-openapi-gen-example/internal/movie/handler"
 
 type Dependency struct {
-	pingHandler *handler.PingHandler
+	*handler.MovieHandler
 }
 
 func (d *Dependency) Inject() {
-	d.pingHandler = handler.NewPingHandler()
+	d.MovieHandler = handler.NewMovieHandler()
 }

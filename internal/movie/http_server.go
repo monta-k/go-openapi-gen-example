@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/monta-k/go-openapi-gen-example/internal/pkg/renderer"
+	"github.com/monta-k/go-openapi-gen-example/openapi/movie/adapters"
 )
 
 type Server struct {
@@ -19,11 +22,16 @@ func NewServer() (*Server, error) {
 	deps := &Dependency{}
 	deps.Inject()
 
-	mux := routing(deps)
+	serverOptions := adapters.ChiServerOptions{
+		ErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			renderer.HandleError(r.Context(), w, err)
+		},
+	}
+	handler := adapters.HandlerWithOptions(deps, serverOptions)
 
 	server := http.Server{
 		Addr:    ":" + port,
-		Handler: mux,
+		Handler: handler,
 	}
 	return &Server{&server}, nil
 }
